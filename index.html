@@ -335,11 +335,14 @@
     }
 
     function labelOf(key, value){
-      const q = CONFIG.questions.find(x=>x.key===key);
-      if(!q) return value;
-      const opt = q.options.find(o=>o.value===value);
-      return opt ? opt.label.replace(/[^\w\s\u4e00-\u9fff\-—]/g,"").trim() : value;
-    }
+  const q = CONFIG.questions.find(x=>x.key===key);
+  if(!q) return value;
+  const opt = q.options.find(o=>o.value===value);
+  if(!opt) return value;
+  // 不用 regex 清理，避免瀏覽器相容性問題
+  return String(opt.label).replace(/\s+/g, " ").trim();
+}
+
 
     function matchScore(p){
       // 類別分流
@@ -551,5 +554,6 @@
   </script>
 </body>
 </html>
+
 
 
