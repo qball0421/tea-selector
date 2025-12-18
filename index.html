@@ -338,7 +338,7 @@
       const q = CONFIG.questions.find(x=>x.key===key);
       if(!q) return value;
       const opt = q.options.find(o=>o.value===value);
-      return opt ? opt.label.replace(/[^\p{L}\p{N}\s\-\—\u4e00-\u9fff]/gu,"").trim() : value;
+      return opt ? opt.label.replace(/[^\w\s\u4e00-\u9fff\-—]/g,"").trim() : value;
     }
 
     function matchScore(p){
@@ -551,4 +551,5 @@
   </script>
 </body>
 </html>
+
 
