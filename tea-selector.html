@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>小文的茶｜選茶器</title>
+  <style>
+    :root{
+      --bg:#faf7f2;
+      --card:#ffffff;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --accent:#2f4f3a;
+      --soft:#f4efe6;
+      --shadow: 0 8px 30px rgba(0,0,0,.06);
+      --r:16px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family: system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;line-height:1.55}
+    a{color:var(--accent);text-decoration:none}
+    .wrap{max-width:980px;margin:0 auto;padding:18px}
+    .hero{background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.6));border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
+    .heroImg{height:180px;background-size:cover;background-position:center}
+    .heroBody{padding:18px 18px 8px}
+    h1{margin:0 0 8px;font-size:22px;letter-spacing:.5px}
+    .lead{margin:0;color:var(--muted)}
+    .notice{margin:12px 0 0;padding:10px 12px;background:var(--soft);border:1px solid var(--line);border-radius:12px;color:#374151;font-size:14px}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
+    @media (min-width:900px){ .grid{grid-template-columns: 1.1fr .9fr;} }
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+    .cardHd{padding:14px 14px 0}
+    .cardBd{padding:14px}
+    .title{font-weight:700;margin:0 0 6px}
+    .sub{color:var(--muted);font-size:14px;margin:0}
+
+    .q{margin:0 0 10px;font-weight:700}
+    .options{display:grid;grid-template-columns:1fr;gap:10px}
+    @media (min-width:520px){ .options{grid-template-columns:1fr 1fr;} }
+    .opt{
+      text-align:left; padding:12px; border:1px solid var(--line); border-radius:14px;
+      background:#fff; cursor:pointer; transition:.12s; position:relative;
+    }
+    .opt:hover{transform: translateY(-1px); box-shadow:0 10px 30px rgba(0,0,0,.06)}
+    .opt small{display:block;color:var(--muted);margin-top:4px}
+    .opt.active{border-color: rgba(47,79,58,.6); outline: 2px solid rgba(47,79,58,.18)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .pill{font-size:12px;color:#374151;background:var(--soft);border:1px solid var(--line);padding:6px 10px;border-radius:999px}
+    .btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;cursor:pointer}
+    .btnPri{background:var(--accent);border-color:var(--accent);color:#fff}
+    .btn:active{transform:scale(.99)}
+    .muted{color:var(--muted)}
+    .hr{height:1px;background:var(--line);margin:12px 0}
+
+    /* Cart bar */
+    .cartbar{
+      position:sticky; top:0; z-index:50;
+      background:rgba(250,247,242,.86); backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+    }
+    .cartinner{max-width:980px;margin:0 auto;padding:10px 18px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .cartleft{display:flex;gap:10px;align-items:center;min-width:0}
+    .cartcount{font-weight:700}
+    .cartitems{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:58vw}
+    .drawer{display:none}
+    .drawer.open{display:block}
+    .drawerBody{padding:14px}
+    .item{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}
+    .itemTop{display:flex;justify-content:space-between;gap:10px}
+    .itemName{font-weight:700;margin:0}
+    .itemMeta{margin:2px 0 0;color:var(--muted);font-size:13px}
+    .qty{display:flex;gap:8px;align-items:center}
+    .qty button{width:30px;height:30px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer}
+    .qty span{min-width:18px;text-align:center}
+    .danger{color:#b91c1c}
+
+    /* Results */
+    .result{display:grid;grid-template-columns:1fr;gap:12px}
+    .rCard{border:1px solid var(--line);border-radius:16px;background:#fff;overflow:hidden}
+    .rImg{height:120px;background:#f3f4f6;background-size:cover;background-position:center}
+    .rBd{padding:12px}
+    .rName{margin:0 0 4px;font-weight:800}
+    .rMeta{margin:0;color:var(--muted);font-size:13px}
+    .why{margin:10px 0 0;color:#374151;font-size:14px}
+    .why li{margin:4px 0}
+    .footnote{font-size:12px;color:var(--muted);margin-top:10px}
+  </style>
+</head>
+
+<body>
+  <!-- 你只要改這段資料就好 -->
+  <script>
+    const CONFIG = {
+      brandTitle: "小文的茶",
+      heroTitle: "不用懂茶，也能選到適合的台灣茶",
+      heroText: "我們把接觸不同產地、不同製程的經驗整理成選茶方式，讓您用白話選項就能挑到合適的選擇。",
+      noSampleNotice: "小本經營，沒有提供試喝包，透過選茶方式，讓您依照需求選擇合適的商品。",
+      imageNote: "圖片為情境示意，實際商品以出貨內容為準。",
+      unitNote: "單位說明：1 兩 ≈ 37.5g｜1 斤 ≈ 600g",
+      // 你的 FB 粉專私訊連結（先留空也能跑）
+      messengerUrl: "https://m.me/",
+
+      // 題目（白話版）
+      questions: [
+        {
+          key: "category",
+          title: "Q1｜這次您想找的是？",
+          options: [
+            { value: "tea", label: "🍵 茶", note: "日常飲用、送禮皆可" },
+            { value: "other", label: "🎁 其他特色商品", note: "香菇、茶籽油、花蜜、陳皮梅醬" },
+            { value: "pick", label: "🎲 你幫我挑", note: "不用想太多，交給我們幫您搭配" }
+          ]
+        },
+        {
+          key: "use",
+          title: "Q2｜這次是？",
+          options: [
+            { value: "self", label: "🫖 自己喝／自己用", note: "平常喝、日常使用" },
+            { value: "gift", label: "🎁 送人", note: "希望對方收到不失禮" },
+            { value: "unsure", label: "🤷 不確定", note: "交給我們幫您判斷" }
+          ]
+        },
+        {
+          key: "feel",
+          title: "Q3｜您希望喝起來的感覺是？",
+          options: [
+            { value: "light", label: "🌸 清香、順口型", note: "香氣細緻，口感清爽，不厚不苦" },
+            { value: "balanced", label: "🙂 平衡耐喝型", note: "香氣與口感都有，但不刺激" },
+            { value: "bold", label: "🔥 香氣厚實型", note: "香氣明顯，口感較厚" },
+            { value: "pick", label: "🎲 交給你們幫我選", note: "依前面條件協助推薦" }
+          ]
+        },
+        {
+          key: "budget",
+          title: "Q4｜這次預算大概落在哪？",
+          options: [
+            { value: "daily", label: "💰 日常喝的預算", note: "大約幾百元等級" },
+            { value: "gift", label: "🎁 想喝好一點／送人", note: "常見送禮價位" },
+            { value: "flavor", label: "⭐ 講究風味", note: "風味表現明顯，價格較高" },
+            { value: "rare", label: "👑 珍藏等級", note: "價格較高，追求品質與稀有性" }
+          ]
+        },
+        {
+          key: "flavor",
+          title: "Q5｜您比較偏好哪一種？",
+          options: [
+            { value: "fresh", label: "🌿 清香型", note: "像花香、草香，清清的" },
+            { value: "roast", label: "🔥 焙香型", note: "像烤過、溫暖的香氣" },
+            { value: "sweet", label: "🍯 甜感型", note: "蜜香、回甘、不苦" },
+            { value: "pick", label: "🎲 不知道", note: "交給我們幫您挑" }
+          ]
+        }
+      ],
+
+      // 商品資料：你要的「項目編號」就是 item
+      // 你先放幾個測試就好，之後再補到 39 項
+      products: [
+        // 茶
+        { type:"tea", name:"高山清香烏龍", item:"8A", origin:"南投", tags:{use:["self","gift"], feel:["light","balanced"], budget:["daily","gift","flavor"], flavor:["fresh","sweet"]},
+          why:["清香順口、耐喝","適合日常也適合送禮"], priceNote:"依包裝不同私訊詢問", img:"" , priority:3 },
+        { type:"tea", name:"焙香烏龍", item:"10A", origin:"南投", tags:{use:["self","gift"], feel:["balanced","bold"], budget:["gift","flavor","rare"], flavor:["roast"]},
+          why:["焙香溫潤、香氣明顯","適合喜歡厚實口感的人"], priceNote:"依包裝不同私訊詢問", img:"", priority:2 },
+        { type:"tea", name:"蜜香紅茶", item:"12A", origin:"台東", tags:{use:["self","gift"], feel:["light","balanced"], budget:["daily","gift","flavor"], flavor:["sweet"]},
+          why:["甜感明顯、好入口","送人安全、接受度高"], priceNote:"依包裝不同私訊詢問", img:"", priority:2 },
+
+        // 非茶
+        { type:"other", name:"高山香菇", item:"35", origin:"南投", tags:{use:["self","gift"], feel:["pick"], budget:["daily","gift","flavor","rare"], flavor:["pick"]},
+          why:["煮湯炒菜都方便","送長輩很安全"], priceNote:"依規格不同私訊詢問", img:"", priority:3 },
+        { type:"other", name:"茶籽油", item:"36", origin:"台灣", tags:{use:["self","gift"], feel:["pick"], budget:["gift","flavor","rare"], flavor:["pick"]},
+          why:["日常料理、拌麵拌菜都合適","送禮體面又實用"], priceNote:"依規格不同私訊詢問", img:"", priority:2 },
+        { type:"other", name:"花蜜", item:"37", origin:"台灣", tags:{use:["self","gift"], feel:["pick"], budget:["daily","gift"], flavor:["sweet","pick"]},
+          why:["口味好懂、接受度高","搭配送禮很加分"], priceNote:"依規格不同私訊詢問", img:"", priority:1 },
+        { type:"other", name:"陳皮梅醬", item:"38", origin:"台灣", tags:{use:["self","gift"], feel:["pick"], budget:["daily","gift"], flavor:["pick"]},
+          why:["料理百搭、很有記憶點","增加禮盒豐富度"], priceNote:"依規格不同私訊詢問", img:"", priority:1 },
+      ],
+
+      // 非茶：固定「主推 1 + 曝光 1」
+      otherPickCount: 2,
+    };
+  </script>
+
+  <!-- 上方暫存清單條 -->
+  <div class="cartbar">
+    <div class="cartinner">
+      <div class="cartleft">
+        <span class="cartcount" id="cartCount">🛒 尚未選擇商品</span>
+        <span class="cartitems" id="cartItems"></span>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnCart">查看／修改</button>
+        <button class="btn btnPri" id="btnMsg">詢問／下單</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="hero card">
+      <div class="heroImg" id="heroImg"></div>
+      <div class="heroBody">
+        <h1 id="heroTitle"></h1>
+        <p class="lead" id="heroText"></p>
+        <div class="notice" id="noSample"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="cardHd">
+          <p class="title">開始選擇</p>
+          <p class="sub">選完就會直接推薦，您也可以隨時修改。</p>
+        </div>
+        <div class="cardBd" id="quiz"></div>
+      </div>
+
+      <div class="card">
+        <div class="cardHd">
+          <p class="title">推薦結果</p>
+          <p class="sub">會顯示項目編號、產地與推薦理由。</p>
+        </div>
+        <div class="cardBd">
+          <div class="result" id="results"></div>
+          <div class="footnote" id="unitNote"></div>
+          <div class="footnote" id="imgNote"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card drawer" id="cartDrawer">
+      <div class="cardHd">
+        <p class="title">暫存清單</p>
+        <p class="sub">可調整數量或移除，商品會被記住（不存個資）。</p>
+      </div>
+      <div class="drawerBody" id="cartBody"></div>
+    </div>
+
+    <p class="footnote" style="margin-top:14px">© <span id="brand"></span></p>
+  </div>
+
+  <script>
+    // ========= 小工具 =========
+    const $ = (id)=>document.getElementById(id);
+    const LS_KEY = "xiaowen_tea_cart_v1";
+    const LS_ANS = "xiaowen_tea_answers_v1";
+
+    const state = {
+      answers: JSON.parse(localStorage.getItem(LS_ANS) || "{}"),
+      cart: JSON.parse(localStorage.getItem(LS_KEY) || "[]"),
+    };
+
+    function save(){
+      localStorage.setItem(LS_KEY, JSON.stringify(state.cart));
+      localStorage.setItem(LS_ANS, JSON.stringify(state.answers));
+    }
+
+    function heroSetup(){
+      $("heroTitle").textContent = CONFIG.heroTitle;
+      $("heroText").textContent = CONFIG.heroText;
+      $("noSample").textContent = CONFIG.noSampleNotice;
+      $("unitNote").textContent = CONFIG.unitNote;
+      $("imgNote").textContent = CONFIG.imageNote;
+      $("brand").textContent = CONFIG.brandTitle;
+
+      // 情境圖：你以後有自己的圖，就換成自己的；目前用純色也不會壞
+      $("heroImg").style.backgroundImage = "linear-gradient(135deg, rgba(47,79,58,.12), rgba(0,0,0,0)), radial-gradient(circle at 30% 20%, rgba(255,255,255,.9), rgba(255,255,255,0))";
+    }
+
+    function renderQuiz(){
+      const root = $("quiz");
+      root.innerHTML = "";
+
+      CONFIG.questions.forEach((q, idx)=>{
+        const box = document.createElement("div");
+        box.style.marginBottom = "14px";
+
+        const head = document.createElement("div");
+        head.className="row";
+        head.style.justifyContent="space-between";
+
+        const qTitle = document.createElement("p");
+        qTitle.className="q";
+        qTitle.textContent = q.title;
+
+        const chosen = document.createElement("span");
+        chosen.className="pill";
+        chosen.textContent = state.answers[q.key] ? `已選：${labelOf(q.key, state.answers[q.key])}` : "尚未選";
+
+        head.appendChild(qTitle);
+        head.appendChild(chosen);
+
+        const opts = document.createElement("div");
+        opts.className="options";
+
+        q.options.forEach(opt=>{
+          const btn = document.createElement("button");
+          btn.type="button";
+          btn.className="opt";
+          if(state.answers[q.key] === opt.value) btn.classList.add("active");
+          btn.innerHTML = `<div>${opt.label}</div><small>${opt.note || ""}</small>`;
+          btn.onclick = ()=>{
+            state.answers[q.key] = opt.value;
+            save();
+            renderQuiz();
+            renderResults();
+          };
+          opts.appendChild(btn);
+        });
+
+        box.appendChild(head);
+        box.appendChild(opts);
+        root.appendChild(box);
+      });
+
+      const actions = document.createElement("div");
+      actions.className="row";
+      actions.innerHTML = `
+        <button class="btn" id="btnReset">清空選擇</button>
+        <button class="btn" id="btnResetCart">清空暫存清單</button>
+      `;
+      root.appendChild(actions);
+
+      $("btnReset").onclick = ()=>{
+        state.answers = {};
+        save();
+        renderQuiz();
+        renderResults();
+      };
+      $("btnResetCart").onclick = ()=>{
+        state.cart = [];
+        save();
+        renderCartBar();
+        renderCartDrawer();
+      };
+    }
+
+    function labelOf(key, value){
+      const q = CONFIG.questions.find(x=>x.key===key);
+      if(!q) return value;
+      const opt = q.options.find(o=>o.value===value);
+      return opt ? opt.label.replace(/[^\p{L}\p{N}\s\-\—\u4e00-\u9fff]/gu,"").trim() : value;
+    }
+
+    function matchScore(p){
+      // 類別分流
+      const cat = state.answers.category;
+      let typeWanted = cat === "pick" ? "tea" : cat; // 你幫我挑：預設茶（也可在下面再加規則）
+      if(p.type !== (typeWanted==="other"?"other":"tea")) return -999;
+
+      // 計分
+      let score = 0;
+      const use = state.answers.use;
+      const feel = state.answers.feel;
+      const budget = state.answers.budget;
+      const flavor = state.answers.flavor;
+
+      if(use && p.tags.use?.includes(use)) score += 3;
+      if(feel && (feel==="pick" ? true : p.tags.feel?.includes(feel))) score += 3;
+      if(budget && p.tags.budget?.includes(budget)) score += 2;
+      if(flavor && (flavor==="pick" ? true : p.tags.flavor?.includes(flavor))) score += 2;
+
+      score += (p.priority || 0); // 你可用 priority 控制主推
+      return score;
+    }
+
+    function pickProducts(){
+      const cat = state.answers.category;
+      // 若沒選任何，就不顯示
+      if(!cat) return [];
+
+      if(cat === "other"){
+        const others = CONFIG.products.filter(p=>p.type==="other").sort((a,b)=>matchScore(b)-matchScore(a));
+        return others.slice(0, CONFIG.otherPickCount);
+      }
+
+      // tea 或 pick
+      const teas = CONFIG.products.filter(p=>p.type==="tea").sort((a,b)=>matchScore(b)-matchScore(a));
+      // 主推 1 + 備選 2（固定 3）
+      return teas.slice(0,3);
+    }
+
+    function renderResults(){
+      const root = $("results");
+      root.innerHTML = "";
+
+      const picked = pickProducts();
+      if(picked.length === 0){
+        root.innerHTML = `<p class="muted">請先完成左側選擇，這裡就會出現推薦結果。</p>`;
+        return;
+      }
+
+      picked.forEach((p, i)=>{
+        const card = document.createElement("div");
+        card.className="rCard";
+
+        const img = document.createElement("div");
+        img.className="rImg";
+        if(p.img){
+          img.style.backgroundImage = `url("${p.img}")`;
+        }else{
+          img.style.backgroundImage = "linear-gradient(135deg, rgba(47,79,58,.10), rgba(0,0,0,0)), radial-gradient(circle at 60% 30%, rgba(255,255,255,.95), rgba(255,255,255,0))";
+        }
+
+        const bd = document.createElement("div");
+        bd.className="rBd";
+        const rank = (state.answers.category==="other")
+          ? (i===0 ? "⭐ 主推" : "◻︎ 也很適合您")
+          : (i===0 ? "⭐ 主推" : "◻︎ 也很適合您");
+
+        bd.innerHTML = `
+          <div class="row" style="justify-content:space-between;align-items:flex-start">
+            <div>
+              <div class="pill">${rank}</div>
+              <h3 class="rName">${p.name}</h3>
+              <p class="rMeta">項目編號：<b>${p.item}</b> ｜ 產地：<b>${p.origin}</b></p>
+              <p class="rMeta">參考：${p.priceNote || "私訊詢問"}</p>
+            </div>
+            <button class="btn btnPri">＋加入暫存</button>
+          </div>
+          <ul class="why">
+            ${(p.why || []).map(x=>`<li>${x}</li>`).join("")}
+          </ul>
+        `;
+
+        bd.querySelector("button").onclick = ()=> addToCart(p);
+
+        card.appendChild(img);
+        card.appendChild(bd);
+        root.appendChild(card);
+      });
+    }
+
+    function addToCart(p){
+      const existing = state.cart.find(x=>x.item===p.item);
+      if(existing) existing.qty += 1;
+      else state.cart.push({ item:p.item, name:p.name, origin:p.origin, qty:1, type:p.type });
+      save();
+      renderCartBar();
+      renderCartDrawer();
+      window.scrollTo({ top: 0, behavior:"smooth" });
+    }
+
+    function renderCartBar(){
+      const count = state.cart.reduce((s,x)=>s+x.qty,0);
+      if(count===0){
+        $("cartCount").textContent = "🛒 尚未選擇商品";
+        $("cartItems").textContent = "";
+      }else{
+        $("cartCount").textContent = `🛒 已選 ${count} 件`;
+        const names = state.cart.map(x=>`${x.name}（${x.item}）×${x.qty}`).join("、");
+        $("cartItems").textContent = names;
+      }
+    }
+
+    function renderCartDrawer(){
+      const body = $("cartBody");
+      body.innerHTML = "";
+
+      if(state.cart.length===0){
+        body.innerHTML = `<p class="muted">目前暫存清單是空的。您可以先完成選擇，將喜歡的品項加入暫存。</p>`;
+        return;
+      }
+
+      state.cart.forEach((x)=>{
+        const div = document.createElement("div");
+        div.className="item";
+        div.style.marginBottom="10px";
+        div.innerHTML = `
+          <div class="itemTop">
+            <div>
+              <p class="itemName">${x.name}</p>
+              <p class="itemMeta">項目編號：<b>${x.item}</b> ｜ 產地：<b>${x.origin}</b></p>
+            </div>
+            <div class="qty">
+              <button aria-label="minus">－</button>
+              <span>${x.qty}</span>
+              <button aria-label="plus">＋</button>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <button class="btn danger">移除</button>
+        `;
+        const [minus, plus] = div.querySelectorAll(".qty button");
+        const remove = div.querySelector(".danger");
+        minus.onclick = ()=>{
+          x.qty = Math.max(1, x.qty-1);
+          save(); renderCartBar(); renderCartDrawer();
+        };
+        plus.onclick = ()=>{
+          x.qty += 1;
+          save(); renderCartBar(); renderCartDrawer();
+        };
+        remove.onclick = ()=>{
+          state.cart = state.cart.filter(t=>t.item!==x.item);
+          save(); renderCartBar(); renderCartDrawer();
+        };
+        body.appendChild(div);
+      });
+
+      body.insertAdjacentHTML("beforeend", `
+        <div class="hr"></div>
+        <div class="row">
+          <button class="btn" id="btnContinue">繼續挑選</button>
+          <button class="btn btnPri" id="btnMsg2">詢問／下單</button>
+        </div>
+      `);
+      $("btnContinue").onclick = ()=>{ $("cartDrawer").classList.remove("open"); window.scrollTo({top:0, behavior:"smooth"}); };
+      $("btnMsg2").onclick = ()=> openMessenger();
+    }
+
+    function openMessenger(){
+      if(!state.cart.length){
+        alert("目前暫存清單是空的，請先加入商品。");
+        return;
+      }
+      const lines = [];
+      lines.push("你好，我在小文的茶選了以下商品：");
+      lines.push("");
+      state.cart.forEach(x=>{
+        lines.push(`・${x.name}（項目${x.item}）×${x.qty}`);
+      });
+      lines.push("");
+      lines.push("想請您幫我確認價格與下單方式，謝謝。");
+
+      const text = encodeURIComponent(lines.join("\n"));
+      // 若你提供完整粉專 m.me 連結，可直接用；否則先複製文字
+      const url = CONFIG.messengerUrl && CONFIG.messengerUrl !== "https://m.me/"
+        ? `${CONFIG.messengerUrl}?ref=${text}`
+        : "";
+
+      if(url){
+        window.open(url, "_blank");
+      }else{
+        navigator.clipboard?.writeText(lines.join("\n"));
+        alert("我已幫你把詢問文字複製到剪貼簿（若未成功，請手動複製畫面文字）。\n\n" + lines.join("\n"));
+      }
+    }
+
+    function wireUI(){
+      $("btnCart").onclick = ()=>{ $("cartDrawer").classList.toggle("open"); renderCartDrawer(); };
+      $("btnMsg").onclick = ()=> openMessenger();
+    }
+
+    // 初始化
+    heroSetup();
+    wireUI();
+    renderQuiz();
+    renderResults();
+    renderCartBar();
+    renderCartDrawer();
+  </script>
+</body>
+</html>
